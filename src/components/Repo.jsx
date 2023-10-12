@@ -51,6 +51,25 @@ const Repo = ({ repositories }) => {
                 </div>
               );
             })}
+
+          <div className="flex justify-center mt-2">
+            {showMore && (
+              <button
+                className=" mt-2 text-sm md:text-base  bg-green-500 px-2 md:px-4 py-1 rounded-md font-semibold hover:bg-green-600 duration-300"
+                onClick={() => setShowMore(false)}
+              >
+                Show Less
+              </button>
+            )}
+            {!showMore && repositories.length > 5 && (
+              <button
+                className=" mt-2 text-sm md:text-base  bg-green-500 px-2 md:px-4 py-1 rounded-md font-semibold hover:bg-green-600 duration-300"
+                onClick={() => setShowMore(true)}
+              >
+                Show More
+              </button>
+            )}
+          </div>
         </ul>
       </div>
     </>
