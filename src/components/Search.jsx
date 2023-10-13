@@ -118,9 +118,9 @@ const Search = () => {
         {/* Displaying the User's Profile */}
         {profile && (
           <div className="border-2 border-green-500 lg:w-3/5 md:w-4/5 mx-auto mt-10 p-8 rounded-xl flex flex-col md:flex-row justify-content-between align-items-center gap-6">
-            <div>
+            <div className="flex flex-col">
               <img
-                src={profile.avatar_url}
+                src={profile.avatar_url || "https://via.placeholder.com/150"}
                 alt=""
                 className="w-28 h-28 rounded-full"
               />
