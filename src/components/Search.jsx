@@ -1,53 +1,95 @@
 import { getGitHubProfile, getUserRepositories } from "../api/gitHubAPI";
 import { useState, useEffect } from "react";
 import Repo from "./Repo";
+import { useToast } from "@chakra-ui/react";
 
 const Search = () => {
   const [username, setUsername] = useState("");
   const [profile, setProfile] = useState(null);
   const [repositories, setRepositories] = useState([]);
+  const toast = useToast();
 
   const handleSearch = async () => {
-    if (username) {
-      // Fetch user profile
-      getGitHubProfile(username)
-        .then((data) => setProfile(data))
-        .catch((error) =>
-          console.log(
-            `Error fetching user profile. Please check the username ${error}`
-          )
-        );
+    try {
+      if (username) {
+        // Fetch user profile
+        const profileData = await getGitHubProfile(username);
+        if (profileData.message === "Not Found") {
+          toast({
+            title: "Invalid username",
+            status: "error",
+            duration: 3000,
+            isClosable: true,
+          });
+          setProfile(null);
+        }
+        if (profileData) {
+          setProfile(profileData);
+          addUserToLocalStorage(profileData, username);
 
-      // Fetch user repositories
-      getUserRepositories(username)
-        .then((data) => setRepositories(data))
-        .catch((error) =>
-          console.log(`Error fetching user repositories ${error}`)
-        );
-    } else {
-      console.log("Please enter a Github username");
+          // Fetch user repositories
+          const repositoriesData = await getUserRepositories(username);
+          if (repositoriesData.length > 0) setRepositories(repositoriesData);
+          if (repositoriesData.message === "Not Found") {
+            toast({
+              title: "User has no repositories",
+              status: "error",
+              duration: 3000,
+              isClosable: true,
+            });
+            setRepositories([]);
+          }
+        } else {
+          toast({
+            title: "Invalid username",
+            status: "error",
+            duration: 3000,
+            isClosable: true,
+          });
+        }
+      } else {
+        toast({
+          title: "Please enter a Github username",
+          status: "warning",
+          duration: 3000,
+          isClosable: true,
+        });
+        setRepositories([]);
+      }
+    } catch (error) {
+      toast({
+        title: "Error fetching data",
+        description: "Please check the username",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      // Handle error gracefully, set profile and repositories to null
+      setProfile(null);
+      setRepositories(null);
     }
   };
 
-  // useEffect(() => {
-  //   const dateString = profile.created_at;
-  //   const date = new Date(dateString);
-  //   const convertedDateString = date.toLocaleDateString("en-US", {
-  //     month: "numeric",
-  //     day: "numeric",
-  //     year: "numeric",
-  //   });
-  //   console.log(convertedDateString); // Outputs: "3/1/2023"
-  // }, [profile]);
+  const addUserToLocalStorage = (data, username) => {
+    // get the item from local-storage
+    const users = JSON.parse(localStorage.getItem("github-users")) || [];
+    const userExists = users.find((user) => user.id === username);
 
-  // const dateString = profile.created_at;
-  // const date = new Date(dateString);
-  // const convertedDateString = date.toLocaleDateString("en-US", {
-  //   month: "numeric",
-  //   day: "numeric",
-  //   year: "numeric",
-  // });
-  // console.log(convertedDateString); // Outputs: "3/1/2023"
+    // If user already exist then remove it
+    if (userExists) {
+      users.splice(users.indexOf(userExists), 1);
+    }
+
+    users.unshift({
+      id: username,
+      avatar_url: data.avatar_url,
+      name: data.name,
+      url: data.html_url,
+    });
+
+    // set the item in local-storage
+    localStorage.setItem("github-users", JSON.stringify(users));
+  };
 
   return (
     <>
@@ -76,7 +118,7 @@ const Search = () => {
         {/* Displaying the User's Profile */}
         {profile && (
           <div className="border-2 border-green-500 lg:w-3/5 md:w-4/5 mx-auto mt-10 p-8 rounded-xl flex flex-col md:flex-row justify-content-between align-items-center gap-6">
-            <div className="">
+            <div>
               <img
                 src={profile.avatar_url}
                 alt=""
@@ -138,7 +180,7 @@ const Search = () => {
                     <span className="text-green-200 font-bold">
                       Member Since:
                     </span>{" "}
-                    {profile.created_at}
+                    {new Date(profile.created_at).toLocaleDateString()}
                   </p>
                 </div>
               </div>
@@ -147,7 +189,7 @@ const Search = () => {
         )}
 
         {/* Displaying the User's repository */}
-        <Repo repositories={repositories} />
+        {repositories.length > 0 && <Repo repositories={repositories} />}
       </div>
     </>
   );

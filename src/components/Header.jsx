@@ -1,16 +1,26 @@
 import { Icon } from "@iconify/react";
+import { Button, ButtonGroup, useDisclosure } from "@chakra-ui/react";
+import HistoryModal from "./HistoryModal";
 const Header = () => {
+  const { isOpen, onOpen, onClose } = useDisclosure();
   return (
     <div className="mt-4 flex justify-around items-center">
       <div>
-        <Icon icon="bi:github" color="white" width="35" className="ml-3 md:ml-5" />
+        <Icon
+          icon="bi:github"
+          color="white"
+          width="35"
+          className="ml-3 md:ml-5"
+        />
         <p className="text-xl md:text-2xl">GitHub</p>
       </div>
       <div>
-        <button className="bg-green-500 px-[8px] py-[5px] md:p-2 rounded-md font-semibold hover:bg-green-600 duration-300">
+        <Button size="md" colorScheme="whatsapp" onClick={onOpen}>
           Search History
-        </button>
+        </Button>
       </div>
+
+      {isOpen && <HistoryModal isOpen={isOpen} onClose={onClose} />}
     </div>
   );
 };

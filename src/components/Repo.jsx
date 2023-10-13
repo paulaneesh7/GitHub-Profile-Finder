@@ -7,7 +7,7 @@ const Repo = ({ repositories }) => {
     <>
       <div className="mt-10 flex flex-col items-center">
         <h2 className="text-3xl uppercase text-green-400 font-sans font-bold">
-          Repositories
+          {repositories.length > 0 ? 'Repositories' : ''}
         </h2>
         {/* Repo */}
 
